@@ -1,0 +1,101 @@
+---
+title: "Relação entre votos, receitas, despesas e bens de candidatos"
+author: "Seu nome"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(GGally)
+library(ggplot2)
+library(here)
+library(readr)
+
+options(OutDec = ",")
+```
+
+```{r carrega dados, include=FALSE}
+despesas <- here("dados", "despesas_candidatos_2014_PB.txt") %>%
+  read_delim(";", locale = locale(encoding = "latin1", decimal_mark = ","))
+
+receitas <- here("dados", "receitas_candidatos_2014_PB.txt") %>%
+  read_delim(";", locale = locale(encoding = "latin1", decimal_mark = ","))
+
+bens <- here("dados", "bem_candidato_2014_PB.csv") %>%
+  read_delim(";", locale = locale(encoding = "latin1", decimal_mark = ","))
+
+votacao <- here("dados", "votacao_candidato_munzona_2014_PB.txt") %>%
+  read_delim(";", locale = locale(encoding = "latin1", decimal_mark = ","),
+             col_names = c(
+    "DT_GERACAO", "HH_GERACAO", "ANO_ELEICAO", "NUM_TURNO", "DESC_ELEICAO",
+    "SIGLA_UF", "SIGLA_UE", "COD_MUNICIPIO", "NM_MUNICIPIO", "NR_ZONA",
+    "COD_CARGO", "NR_CANDIDATO", "SQ_CANDIDATO", "NM_CANDIDATO",
+    "NM_URNA_CANDIDATO", "DESC_CARGO", "COD_SIT_CAND_SUPERIOR",
+    "DESC_SIT_CAND_SUPERIOR", "COD_SIT_CANDIDATO", "DESC_SIT_CANDIDATO",
+    "COD_SID_CAND_TOT", "DESC_SIT_CAND_TOT", "NR_PARTIDO", "SIGLA_PARTIDO",
+    "NM_PARTIDO", "SEQ_LEGENDA", "NM_COLIGACAO", "COMPOSICAO_LEGENDA",
+    "TOTAL_VOTOS", "TRANSITO"
+    ))
+```
+
+
+```{r agrega dados, include = FALSE}
+total_despesas <- despesas %>%
+  group_by(`Sequencial Candidato`) %>%
+  summarise(`Valor total despesas` = sum(`Valor despesa`))
+
+total_receitas <- receitas %>%
+  group_by(`Sequencial Candidato`) %>%
+  summarise(`Valor total receitas` = sum(`Valor receita`))
+
+total_bens <- bens %>%
+  group_by(`Sequencial Candidato` = SQ_CANDIDATO) %>%
+  summarise(`Valor total bens` = sum(VR_BEM_CANDIDATO))
+
+total_votos <- votacao %>%
+  group_by(Cargo = DESC_CARGO,
+           `Sigla  Partido` = SIGLA_PARTIDO,
+           `Sequencial Candidato` = SQ_CANDIDATO,
+           `Numero candidato` = NR_CANDIDATO,
+           `Nome candidato` = NM_CANDIDATO,
+           Turno = NUM_TURNO) %>%
+  summarise(`Total votos` = sum(TOTAL_VOTOS, na.rm = TRUE),
+            Situacao = first(DESC_SIT_CAND_TOT))
+  
+dados_candidatos <- total_votos %>%
+  left_join(total_despesas) %>%
+  left_join(total_receitas) %>%
+  left_join(total_bens)
+
+```
+
+Explique os dados que você vai analisar, de onde obteve e que análise pretende
+fazer.
+
+```{r filtra dados}
+# Filtre apenas o cargo que você está interessado em analisar. Exemplo:
+dados_candidatos <- dados_candidatos %>%
+  filter(Cargo == "DEPUTADO ESTADUAL")
+
+dados_candidatos
+```
+
+
+# Análise exploratória
+
+Inicialmente, faça uma análise exploratória de cada variável individualmente.
+
+
+# Análise das relações entre variáveis
+
+Faça uma análise das relações entre as variáveis em questão. Você pode começar
+com uma análise gráfica das relações entre variáveis, para depois partir para
+análise de correlação e regressão.
+
+# Análise de regressão
+
+Analise a relação entre a quantidade de votos que um candidato recebe
+com outras variáveis. Você pode começar com regressões simples, considerando
+apenas uma variável por vez, e em seguida fazer regressões múltiplas.
+
+Descreva bem as suas conclusões, de forma clara para um público geral.

@@ -42,15 +42,15 @@ votacao <- here("dados", "votacao_candidato_munzona_2014_PB.txt") %>%
 ```{r agrega dados, include = FALSE}
 total_despesas <- despesas %>%
   group_by(`Sequencial Candidato`) %>%
-  summarise(`Valor total despesas` = sum(`Valor despesa`))
+  summarise(`Total despesas` = sum(`Valor despesa`))
 
 total_receitas <- receitas %>%
   group_by(`Sequencial Candidato`) %>%
-  summarise(`Valor total receitas` = sum(`Valor receita`))
+  summarise(`Total receitas` = sum(`Valor receita`))
 
 total_bens <- bens %>%
   group_by(`Sequencial Candidato` = SQ_CANDIDATO) %>%
-  summarise(`Valor total bens` = sum(VR_BEM_CANDIDATO))
+  summarise(`Total bens` = sum(VR_BEM_CANDIDATO))
 
 total_votos <- votacao %>%
   group_by(Cargo = DESC_CARGO,
@@ -59,23 +59,23 @@ total_votos <- votacao %>%
            `Numero candidato` = NR_CANDIDATO,
            `Nome candidato` = NM_CANDIDATO,
            Turno = NUM_TURNO) %>%
-  summarise(`Total votos` = sum(TOTAL_VOTOS, na.rm = TRUE),
-            Situacao = first(DESC_SIT_CAND_TOT))
+  summarise(Situacao = first(DESC_SIT_CAND_TOT),
+            `Total votos` = sum(TOTAL_VOTOS, na.rm = TRUE))
   
 dados_candidatos <- total_votos %>%
   left_join(total_despesas) %>%
   left_join(total_receitas) %>%
   left_join(total_bens)
-
 ```
 
 Explique os dados que você vai analisar, de onde obteve e que análise pretende
-fazer.
+fazer. Filtre candidatos de apenas um cargo e um lugar, que tenha pelo menos 90
+candidatos. Por exemplo, deputado estadual na Paraíba ou vereador em Campina Grande.
 
 ```{r filtra dados}
 # Filtre apenas o cargo que você está interessado em analisar. Exemplo:
 dados_candidatos <- dados_candidatos %>%
-  filter(Cargo == "DEPUTADO ESTADUAL")
+  filter(Cargo == "DEPUTADO FEDERAL")
 
 dados_candidatos
 ```
@@ -92,6 +92,7 @@ Faça uma análise das relações entre as variáveis em questão. Você pode co
 com uma análise gráfica das relações entre variáveis, para depois partir para
 análise de correlação e regressão.
 
+
 # Análise de regressão
 
 Analise a relação entre a quantidade de votos que um candidato recebe
@@ -99,3 +100,13 @@ com outras variáveis. Você pode começar com regressões simples, considerando
 apenas uma variável por vez, e em seguida fazer regressões múltiplas.
 
 Descreva bem as suas conclusões, de forma clara para um público geral.
+
+
+# Exemplos de perguntas a responder:
+
+- Quanto um candidato deve gastar no mínimo (despesa) para ter mais chance de ser eleito?
+- Quanto um candidato deve arrecadar no mínimo (receita) para ter mais chance de ser eleito?
+- Quanto de bens um candidato deve ter no mínimo para ter mais chance de ser eleito?
+- Existe alguma combinação de variáveis que explica bem a quantidade de dados que um candidato recebe?
+- Considere um candidato fictício que recebeu 100 mil reais de receita na campanha. Qual a previsão de votos que ele deve receber? É provável que ele seja eleito?
+- Considere um candidato fictício que gastou 100 mil reais de despesa na campanha e possui 1 milhão de reais em bens. Qual a previsão de votos que ele deve receber? É provável que ele seja eleito?
